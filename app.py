@@ -4,10 +4,10 @@ from folium import plugins
 import streamlit as st
 from streamlit_folium import st_folium
 
-# 1. Full-Screen Page Config
+# 1. Full-Screen Page Configuration
 st.set_page_config(page_title="AquaTrace | Orbital View", layout="wide", initial_sidebar_state="expanded")
 
-# 2. Advanced CSS for HUD Aesthetics & Full Screen Map
+# 2. Advanced HUD Styling & Canvas Optimization
 st.markdown("""
 <style>
 .block-container { padding: 0rem !important; margin: 0rem !important; max-width: 100% !important; overflow: hidden; }
@@ -25,10 +25,11 @@ footer { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# 3. State Management
+# 3. Session State Management
 if "selected_vessel_id" not in st.session_state:
     st.session_state.selected_vessel_id = None
 
+# Telemetry and Geospatial Polygons
 vessels = [
     {
         "id": "v1", "name": "MT Sagar Ratna", "mmsi": "419000123", "type": "Crude Oil Tanker",
@@ -56,7 +57,7 @@ vessels = [
     }
 ]
 
-# 4. Interactive Sidebar HUD
+# 4. AquaTrace Sidebar HUD
 active_vessel = next((v for v in vessels if v["id"] == st.session_state.selected_vessel_id), None)
 
 with st.sidebar:
@@ -135,7 +136,7 @@ with st.sidebar:
         )
         st.markdown(idle_html, unsafe_allow_html=True)
 
-# 5. Initialize Esri Map
+# 5. Initialize Satellite Base Map
 m = folium.Map(
     location=[18.50, 84.50], 
     zoom_start=7, 
@@ -143,7 +144,7 @@ m = folium.Map(
     attr="Esri"
 )
 
-# 6. Render Map Layers
+# 6. Render Detection Layers & Dynamic Traces
 for v in vessels:
     is_selected = (v["id"] == st.session_state.selected_vessel_id)
 
@@ -165,7 +166,7 @@ for v in vessels:
         icon=folium.Icon(color="red" if not is_selected else "blue", icon="screenshot"),
     ).add_to(m)
 
-# 7. Map Rendering
+# 7. Render Streamlit Map Element
 map_data = st_folium(
     m, 
     key="aquatrace_map",
@@ -174,7 +175,7 @@ map_data = st_folium(
     returned_objects=["last_object_clicked"] 
 )
 
-# 8. Click Processing
+# 8. Interactive Spatial Intersect Processing
 if map_data and map_data.get("last_object_clicked"):
     clicked_lat = map_data["last_object_clicked"]["lat"]
     clicked_lng = map_data["last_object_clicked"]["lng"]
