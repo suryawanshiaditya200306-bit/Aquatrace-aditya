@@ -1,0 +1,22 @@
+mmsi,timestamp,latitude,longitude,sog,cog,heading,vessel_type,name
+419000123,2026-09-07T08:00:00Z,17.35,83.35,10.8,42.0,42.0,Crude Oil Tanker,MT Sagar Ratna
+419000123,2026-09-07T10:00:00Z,17.46,83.42,11.0,45.0,45.0,Crude Oil Tanker,MT Sagar Ratna
+419000123,2026-09-07T12:00:00Z,17.58,83.52,11.2,47.0,47.0,Crude Oil Tanker,MT Sagar Ratna
+419000123,2026-09-07T13:00:00Z,17.62,83.58,6.1,48.0,48.0,Crude Oil Tanker,MT Sagar Ratna
+419000123,2026-09-07T14:00:00Z,17.69,83.66,11.4,48.0,48.0,Crude Oil Tanker,MT Sagar Ratna
+419000123,2026-09-07T15:00:00Z,17.72,83.70,11.5,95.0,94.0,Crude Oil Tanker,MT Sagar Ratna
+419000123,2026-09-07T16:00:00Z,17.78,83.79,11.1,50.0,50.0,Crude Oil Tanker,MT Sagar Ratna
+419000888,2026-09-07T07:00:00Z,16.70,82.10,9.2,50.0,50.0,Bulk Carrier,MV Crimson Tide
+419000888,2026-09-07T10:00:00Z,16.85,82.25,9.5,52.0,52.0,Bulk Carrier,MV Crimson Tide
+419000888,2026-09-07T13:00:00Z,16.98,82.35,9.8,55.0,55.0,Bulk Carrier,MV Crimson Tide
+419000888,2026-09-07T16:00:00Z,17.15,82.50,9.6,56.0,56.0,Bulk Carrier,MV Crimson Tide
+000000001,2026-09-07T08:00:00Z,18.10,84.40,13.5,58.0,58.0,Unregistered Tanker,Black Pearl (Rogue)
+000000001,2026-09-07T11:00:00Z,18.30,84.60,13.9,60.0,60.0,Unregistered Tanker,Black Pearl (Rogue)
+000000001,2026-09-07T12:30:00Z,18.40,84.70,4.2,61.0,61.0,Unregistered Tanker,Black Pearl (Rogue)
+000000001,2026-09-07T14:00:00Z,18.50,84.80,14.1,62.0,62.0,Unregistered Tanker,Black Pearl (Rogue)
+000000001,2026-09-07T15:30:00Z,18.60,84.90,14.0,130.0,128.0,Unregistered Tanker,Black Pearl (Rogue)
+000000001,2026-09-07T17:00:00Z,18.75,85.05,14.0,64.0,64.0,Unregistered Tanker,Black Pearl (Rogue)
+419000456,2026-09-07T06:00:00Z,19.80,86.40,11.8,38.0,38.0,Chemical Tanker,Oceanic Voyager
+419000456,2026-09-07T09:00:00Z,19.95,86.60,12.0,39.0,39.0,Chemical Tanker,Oceanic Voyager
+419000456,2026-09-07T12:00:00Z,20.15,86.75,12.3,40.0,40.0,Chemical Tanker,Oceanic Voyager
+419000456,2026-09-07T15:00:00Z,20.40,86.95,12.1,42.0,42.0,Chemical Tanker,Oceanic Voyager
