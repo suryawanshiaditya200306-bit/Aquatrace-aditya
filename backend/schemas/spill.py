@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -30,6 +30,16 @@ class SpillAnalyzeResponse(BaseModel):
     spill_id: str
     spill_detected: bool
     confidence: float = Field(ge=0.0, le=1.0)
+    spill_area_pct: float = Field(default=0.0, ge=0.0, le=100.0)
+    inference_time_ms: float = Field(default=0.0, ge=0.0)
+    inference_mode: Literal["real", "mock"] = "mock"
+    spill_boundary: list[list[float]] = Field(
+        default_factory=list,
+        description=(
+            "Outer spill mask boundary in normalized image coordinates "
+            "[[x, y], ...] with x,y in [0,1]. Empty when no spill."
+        ),
+    )
     footprint: SpillFootprint
     estimated_volume_m3: Optional[float] = None
     sensor: str = "Sentinel-1 (mock)"

@@ -104,6 +104,7 @@ def correlate_vessel(
     *,
     footprint: SpillFootprint,
     time_window_hours: float,
+    observed_at: Optional[datetime] = None,
 ) -> Optional[VesselCorrelationCandidate]:
     detail = ais_service.get_vessel_detail(vessel_id)
     traj = ais_service.get_trajectory(vessel_id)
@@ -116,9 +117,15 @@ def correlate_vessel(
         points = [(detail.lat, detail.lon)]
         timestamps = [detail.last_ais_timestamp]
 
+    spill_time = observed_at or SPILL_OBSERVED_AT
+
     distance_km = round(_min_distance_to_spill_km(points, footprint), 2)
     spatial = round(_spatial_score(distance_km), 3)
-    temporal, temporal_note = _temporal_score(timestamps, window_hours=time_window_hours)
+    temporal, temporal_note = _temporal_score(
+        timestamps,
+        window_hours=time_window_hours,
+        spill_time=spill_time,
+    )
     temporal = round(temporal, 3)
 
     matched = spatial >= SPATIAL_MATCH_SCORE and temporal >= TEMPORAL_MATCH_SCORE
@@ -143,13 +150,19 @@ def correlate_vessels(
     *,
     time_window_hours: float = 12.0,
     footprint: Optional[SpillFootprint] = None,
+    observed_at: Optional[datetime] = None,
 ) -> list[VesselCorrelationCandidate]:
     """Correlate AIS vessels against the spill footprint."""
     fp = footprint or mock_sih.SPILL_FOOTPRINT
     ids = vessel_ids or ais_service.list_vessel_ids()
     out: list[VesselCorrelationCandidate] = []
     for vid in ids:
-        candidate = correlate_vessel(vid, footprint=fp, time_window_hours=time_window_hours)
+        candidate = correlate_vessel(
+            vid,
+            footprint=fp,
+            time_window_hours=time_window_hours,
+            observed_at=observed_at,
+        )
         if candidate is not None:
             out.append(candidate)
     out.sort(

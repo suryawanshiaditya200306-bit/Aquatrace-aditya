@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Optional
 
 from backend.schemas.correlation import VesselCorrelationCandidate
@@ -39,6 +40,7 @@ def score_vessel(
     correlation: Optional[VesselCorrelationCandidate] = None,
     time_window_hours: float = 12.0,
     footprint: Optional[SpillFootprint] = None,
+    observed_at: Optional[datetime] = None,
 ) -> Optional[VesselRiskScore]:
     detail = ais_service.get_vessel_detail(vessel_id)
     if detail is None:
@@ -49,6 +51,7 @@ def score_vessel(
             vessel_id,
             footprint=footprint or mock_sih.SPILL_FOOTPRINT,
             time_window_hours=time_window_hours,
+            observed_at=observed_at,
         )
     if correlation is None:
         return None
@@ -130,6 +133,7 @@ def score_vessels(
     *,
     time_window_hours: float = 12.0,
     footprint: Optional[SpillFootprint] = None,
+    observed_at: Optional[datetime] = None,
 ) -> list[VesselRiskScore]:
     ids = vessel_ids or ais_service.list_vessel_ids()
     fp = footprint or mock_sih.SPILL_FOOTPRINT
@@ -141,6 +145,7 @@ def score_vessels(
             ids,
             time_window_hours=time_window_hours,
             footprint=fp,
+            observed_at=observed_at,
         )
     }
 
@@ -151,6 +156,7 @@ def score_vessels(
             correlation=corr_map.get(vid),
             time_window_hours=time_window_hours,
             footprint=fp,
+            observed_at=observed_at,
         )
         if scored is not None:
             ranked.append(scored)
