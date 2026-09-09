@@ -26,14 +26,16 @@ html, body, [class*="css"] {
 }
 .stApp {
     background: linear-gradient(180deg, #F4F6F8 0%, #E8EEF2 100%);
-    color: #0F172A;
+    color: #FFFFFF !important;
 }
 header[data-testid="stHeader"] { background: transparent; }
 [data-testid="stToolbar"] { display: none; }
 
 [data-testid="stSidebar"] {
-    background: #FFFFFF;
-    border-right: 1px solid #D0D7DE;
+    visibility: visible !important;
+    transform: none !important;
+    width: 21rem !important;
+    min-width: 21rem !important;    border-right: 1px solid #D0D7DE;
     box-shadow: none;
 }
 [data-testid="stSidebar"] > div:first-child { padding-top: 0.75rem; }
@@ -44,15 +46,15 @@ header[data-testid="stHeader"] { background: transparent; }
 }
 
 .ops-brand {
-    font-size: 1.35rem;
+    font-size: 3rem !important;
     font-weight: 700;
-    color: #0B3A5C;
+    color: #FFFFFF !important;
     letter-spacing: -0.02em;
     margin: 0;
 }
 .ops-subtitle {
     font-size: 0.8rem;
-    color: #64748B;
+    color: #9FC4D6;
     margin: 0.15rem 0 0.85rem 0;
 }
 .ops-chip {
@@ -62,8 +64,8 @@ header[data-testid="stHeader"] { background: transparent; }
     padding: 0.2rem 0.55rem;
     border-radius: 4px;
     border: 1px solid #D0D7DE;
-    background: #F8FAFC;
-    color: #334155;
+    background: #07131C;
+    color: #A8BAC6;
     margin-bottom: 0.75rem;
 }
 .ops-chip.ok { border-color: #A7F3D0; background: #ECFDF5; color: #065F46; }
@@ -74,11 +76,11 @@ header[data-testid="stHeader"] { background: transparent; }
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #64748B;
+    color: #FFFFFF !important;
     margin: 1rem 0 0.45rem 0;
 }
 .ops-card {
-    background: #FFFFFF;
+    background: #0B1B26;
     border: 1px solid #D0D7DE;
     border-radius: 8px;
     padding: 0.9rem 1rem;
@@ -90,7 +92,7 @@ header[data-testid="stHeader"] { background: transparent; }
 .ops-name {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #0F172A;
+    color: #FFFFFF !important;
     margin: 0 0 0.65rem 0;
 }
 .ops-row {
@@ -102,13 +104,13 @@ header[data-testid="stHeader"] { background: transparent; }
     border-bottom: 1px solid #EEF2F6;
 }
 .ops-row:last-child { border-bottom: none; }
-.ops-label { color: #64748B; }
-.ops-value { color: #0F172A; font-weight: 500; text-align: right; }
+.ops-label { color: #78909C; }
+.ops-value { color: #D7E3EA; font-weight: 500; text-align: right; }
 .ops-mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.82rem; }
 
 .ops-metric {
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
+    background: #07131C;
+    border: 1px solid #24536A;
     border-radius: 8px;
     padding: 0.7rem 0.75rem;
     text-align: left;
@@ -116,14 +118,14 @@ header[data-testid="stHeader"] { background: transparent; }
 .ops-metric .k {
     font-size: 0.68rem;
     font-weight: 600;
-    color: #64748B;
+    color: #FFFFFF !important;
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
 .ops-metric .v {
     font-size: 1.15rem;
     font-weight: 600;
-    color: #0B3A5C;
+    color: #FFFFFF !important;
     margin-top: 0.2rem;
 }
 .ops-metric .v.critical { color: #B42318; }
@@ -133,10 +135,10 @@ header[data-testid="stHeader"] { background: transparent; }
 
 .ops-note {
     font-size: 0.82rem;
-    color: #334155;
+    color: #A8BAC6;
     line-height: 1.45;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
+    background: #07131C;
+    border: 1px solid #24536A;
     border-radius: 8px;
     padding: 0.75rem 0.85rem;
 }
@@ -146,13 +148,13 @@ header[data-testid="stHeader"] { background: transparent; }
 }
 .ops-idle h4 {
     margin: 0 0 0.35rem 0;
-    color: #0F172A;
+    color: #FFFFFF !important;
     font-weight: 600;
     font-size: 1rem;
 }
 .ops-idle p {
     margin: 0;
-    color: #64748B;
+    color: #FFFFFF !important;
     font-size: 0.85rem;
     line-height: 1.45;
 }
@@ -420,8 +422,8 @@ with st.sidebar:
                 st.markdown(
                     f"""
                     <div class="ops-card" style="padding:0.65rem 0.75rem;margin-bottom:0.45rem;">
-                      <div style="font-weight:600;color:#0F172A;font-size:0.9rem;">{v['name']}</div>
-                      <div style="font-size:0.75rem;color:#64748B;margin-top:0.2rem;">
+                      <div style="font-weight:600;color:#FFFFFF;font-size:0.9rem;">{v['name']}</div>
+                      <div style="font-size:0.75rem;color:#A8BAC6;margin-top:0.2rem;">
                         <span class="ops-mono">{v['mmsi']}</span> · {v['type']} · {v['speed']}
                       </div>
                     </div>
