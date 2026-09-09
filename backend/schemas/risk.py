@@ -40,4 +40,11 @@ class RiskScoreResponse(BaseModel):
             "mock_default = fallback prototype spill geography."
         ),
     )
+    spill_detected: Optional[bool] = Field(
+        default=None,
+        description=(
+            "From registered analyze result when spill_source=registry; "
+            "null for mock_default."
+        ),
+    )
     message: str

@@ -12,15 +12,29 @@ def score_culprit_risk(payload: RiskScoreRequest) -> RiskScoreResponse:
     spill_id = payload.spill_id or mock_sih.DEFAULT_SPILL_ID
     registered = spill_registry.get(spill_id)
 
+    if registered is not None and not registered.spill_detected:
+        return RiskScoreResponse(
+            spill_id=spill_id,
+            ranked_vessels=[],
+            primary_culprit_vessel_id=None,
+            spill_source="registry",
+            spill_detected=False,
+            message=(
+                "No spill detected for this spill_id; risk scoring skipped."
+            ),
+        )
+
     if registered is not None:
         footprint = registered.footprint
         observed_at = registered.observed_at
         spill_source = "registry"
+        spill_detected = registered.spill_detected
         footprint_note = "registered spill footprint"
     else:
         footprint = mock_sih.SPILL_FOOTPRINT
         observed_at = None
         spill_source = "mock_default"
+        spill_detected = None
         footprint_note = "default mock spill footprint"
 
     if ais_service.using_csv():
@@ -57,6 +71,7 @@ def score_culprit_risk(payload: RiskScoreRequest) -> RiskScoreResponse:
         ranked_vessels=ranked,
         primary_culprit_vessel_id=primary,
         spill_source=spill_source,
+        spill_detected=spill_detected,
         message=(
             f"Risk scoring using {source}. "
             f"Primary culprit candidate: {primary or 'none'}."

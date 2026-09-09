@@ -239,13 +239,24 @@ def main(argv: list[str] | None = None) -> int:
         print("top vessel:                 (none)")
 
     # --- Summary ---
-    top_name = (top or {}).get("vessel_name", "—")
-    top_dist = (top or {}).get("distance_to_spill_km", "—")
-    top_matched = (top or {}).get("matched", "—")
-    risk_name = (top_risk or {}).get("vessel_name", "—")
-    risk_score = (top_risk or {}).get("risk_score", "—")
-    risk_level = (top_risk or {}).get("risk_level", "—")
-    primary = risk.get("primary_culprit_vessel_id") or risk_name
+    no_spill = spill_detected is False
+    if no_spill:
+        top_name = "none"
+        top_dist = "n/a"
+        top_matched = False
+        matched_n = 0
+        primary = "none"
+        risk_score = "n/a"
+        risk_level = "n/a"
+    else:
+        top_name = (top or {}).get("vessel_name", "n/a")
+        top_dist = (top or {}).get("distance_to_spill_km", "n/a")
+        top_matched = (top or {}).get("matched", "n/a")
+        risk_score = (top_risk or {}).get("risk_score", "n/a")
+        risk_level = (top_risk or {}).get("risk_level", "n/a")
+        primary = risk.get("primary_culprit_vessel_id") or "none"
+        if primary is None:
+            primary = "none"
 
     print()
     print("========================================")
@@ -256,15 +267,21 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Spill Area: {spill_area_pct}%")
     print(f"Inference: {inference_time_ms} ms")
     print(f"Spill ID: {spill_id}")
+    if no_spill:
+        print(
+            "Outcome: no spill detected - correlation/risk correctly skipped"
+        )
     print()
     print("CORRELATION")
     print(f"Source: {corr.get('spill_source')}")
+    print(f"spill_detected: {corr.get('spill_detected')}")
     print(f"Matched Vessels: {matched_n}")
     print(f"Top Vessel: {top_name}")
     print(f"Distance: {top_dist} km")
     print(f"Match: {top_matched}")
     print()
     print("RISK")
+    print(f"spill_detected: {risk.get('spill_detected')}")
     print(f"Primary Culprit: {primary}")
     print(f"Risk Score: {risk_score}")
     print(f"Risk Level: {risk_level}")

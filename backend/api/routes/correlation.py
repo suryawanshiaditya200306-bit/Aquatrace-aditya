@@ -12,15 +12,30 @@ def correlate_spill_vessels(payload: CorrelateRequest) -> CorrelateResponse:
     spill_id = payload.spill_id or mock_sih.DEFAULT_SPILL_ID
     registered = spill_registry.get(spill_id)
 
+    if registered is not None and not registered.spill_detected:
+        return CorrelateResponse(
+            spill_id=spill_id,
+            time_window_hours=payload.time_window_hours,
+            candidates=[],
+            top_match_vessel_id=None,
+            spill_source="registry",
+            spill_detected=False,
+            message=(
+                "No spill detected for this spill_id; correlation skipped."
+            ),
+        )
+
     if registered is not None:
         footprint = registered.footprint
         observed_at = registered.observed_at
         spill_source = "registry"
+        spill_detected = registered.spill_detected
         footprint_note = "registered spill footprint"
     else:
         footprint = mock_sih.SPILL_FOOTPRINT
         observed_at = None
         spill_source = "mock_default"
+        spill_detected = None
         footprint_note = "default mock spill footprint"
 
     if ais_service.using_csv():
@@ -46,6 +61,7 @@ def correlate_spill_vessels(payload: CorrelateRequest) -> CorrelateResponse:
         candidates=candidates,
         top_match_vessel_id=top,
         spill_source=spill_source,
+        spill_detected=spill_detected,
         message=(
             f"Correlation complete using {source}. "
             f"{sum(1 for c in candidates if c.matched)} vessel(s) matched."
