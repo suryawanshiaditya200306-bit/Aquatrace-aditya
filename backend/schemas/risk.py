@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -33,4 +33,18 @@ class RiskScoreResponse(BaseModel):
     spill_id: str
     ranked_vessels: list[VesselRiskScore]
     primary_culprit_vessel_id: Optional[str] = None
+    spill_source: Literal["registry", "mock_default"] = Field(
+        default="mock_default",
+        description=(
+            "registry = footprint/time from in-memory spill analyze result; "
+            "mock_default = fallback prototype spill geography."
+        ),
+    )
+    spill_detected: Optional[bool] = Field(
+        default=None,
+        description=(
+            "From registered analyze result when spill_source=registry; "
+            "null for mock_default."
+        ),
+    )
     message: str

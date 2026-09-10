@@ -180,12 +180,19 @@ div[data-testid="stSidebar"] button {
 
 if "selected_vessel_id" not in st.session_state:
     st.session_state.selected_vessel_id = None
+if "spill_id" not in st.session_state:
+    st.session_state.spill_id = None
+if "spill_analysis" not in st.session_state:
+    st.session_state.spill_analysis = None
 
 
 def _load_map_vessels() -> tuple[list[dict], dict]:
     """Fetch vessels + trajectories + spill footprint from the API."""
     summaries = api_client.get_vessels()
-    spill = api_client.analyze_spill()
+    # Prefer last uploaded SAR analyze result; otherwise legacy empty-body analyze.
+    spill = st.session_state.spill_analysis
+    if not isinstance(spill, dict):
+        spill = api_client.analyze_spill()
 
     spill_poly = [[p["lat"], p["lon"]] for p in spill.get("footprint", {}).get("polygon", [])]
     area_label = f"{spill.get('footprint', {}).get('area_sq_km', 0)} sq km"
@@ -232,14 +239,16 @@ except BackendError as exc:
 
 active_vessel = next((v for v in vessels if v["id"] == st.session_state.selected_vessel_id), None)
 selection_error: Optional[str] = None
+sar_error: Optional[str] = None
 correlation_line = "Select a vessel to run spill–AIS correlation."
-confidence_label = "—"
+risk_score_label = "—"
 risk_level = ""
 risk_factors: list[dict[str, Any]] = []
 spatial_score = None
 temporal_score = None
 distance_km = None
 matched = False
+active_spill_id = st.session_state.spill_id
 
 if active_vessel and backend_error is None:
     try:
@@ -256,7 +265,10 @@ if active_vessel and backend_error is None:
         traj = api_client.get_trajectory(active_vessel["id"])
         active_vessel["path"] = [[p["lat"], p["lon"]] for p in traj.get("points", [])]
 
-        corr = api_client.correlate_vessel(active_vessel["id"])
+        corr = api_client.correlate_vessel(
+            active_vessel["id"],
+            spill_id=active_spill_id,
+        )
         candidate = next(
             (c for c in corr.get("candidates", []) if c.get("vessel_id") == active_vessel["id"]),
             None,
@@ -278,7 +290,10 @@ if active_vessel and backend_error is None:
         else:
             correlation_line = corr.get("message", "Correlation complete.")
 
-        risk = api_client.score_risk(active_vessel["id"])
+        risk = api_client.score_risk(
+            active_vessel["id"],
+            spill_id=active_spill_id,
+        )
         ranked = risk.get("ranked_vessels", [])
         vessel_risk = next(
             (r for r in ranked if r.get("vessel_id") == active_vessel["id"]),
@@ -286,16 +301,16 @@ if active_vessel and backend_error is None:
         )
         if vessel_risk:
             score_pct = float(vessel_risk.get("risk_score", 0.0)) * 100.0
-            confidence_label = f"{score_pct:.1f}%"
+            risk_score_label = f"{score_pct:.1f}%"
             risk_level = str(vessel_risk.get("risk_level", "")).upper()
-            active_vessel["confidence"] = confidence_label
+            active_vessel["risk_score_label"] = risk_score_label
             active_vessel["risk_rationale"] = vessel_risk.get("rationale", "")
             risk_factors = vessel_risk.get("factors") or []
         else:
-            active_vessel["confidence"] = "—"
+            active_vessel["risk_score_label"] = "—"
     except BackendError as exc:
         selection_error = exc.message
-        active_vessel["confidence"] = "—"
+        active_vessel["risk_score_label"] = "—"
 
 # --- Operations panel (sidebar) ---
 with st.sidebar:
@@ -320,6 +335,67 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
+    st.markdown('<div class="ops-section">SAR detection</div>', unsafe_allow_html=True)
+    sar_file = st.file_uploader(
+        "Upload SAR image",
+        type=["png", "jpg", "jpeg"],
+        help="Runs POST /api/v1/spill/analyze and registers spill_id for correlate/risk.",
+        key="sar_uploader",
+    )
+    if st.button(
+        "Analyze SAR image",
+        use_container_width=True,
+        disabled=sar_file is None or backend_error is not None,
+    ):
+        try:
+            with st.spinner("Running SAR spill analysis…"):
+                result = api_client.analyze_spill(
+                    sar_file,
+                    filename=getattr(sar_file, "name", "sar_image.png"),
+                    content_type=getattr(sar_file, "type", None),
+                )
+            st.session_state.spill_analysis = result
+            st.session_state.spill_id = result.get("spill_id")
+            st.rerun()
+        except BackendError as exc:
+            sar_error = exc.message
+
+    if sar_error:
+        st.markdown(
+            f'<div class="ops-banner"><strong>SAR analysis failed</strong>{sar_error}</div>',
+            unsafe_allow_html=True,
+        )
+
+    spill_analysis = st.session_state.spill_analysis
+    if isinstance(spill_analysis, dict):
+        sar_conf = spill_analysis.get("confidence")
+        sar_conf_label = (
+            f"{float(sar_conf) * 100.0:.1f}%"
+            if isinstance(sar_conf, (int, float))
+            else "—"
+        )
+        st.markdown(
+            f"""
+            <div class="ops-card">
+              <div class="ops-row"><span class="ops-label">Spill detected</span>
+                <span class="ops-value">{spill_analysis.get('spill_detected')}</span></div>
+              <div class="ops-row"><span class="ops-label">SAR confidence</span>
+                <span class="ops-value">{sar_conf_label}</span></div>
+              <div class="ops-row"><span class="ops-label">Spill area %</span>
+                <span class="ops-value">{spill_analysis.get('spill_area_pct')}%</span></div>
+              <div class="ops-row"><span class="ops-label">Inference time</span>
+                <span class="ops-value">{spill_analysis.get('inference_time_ms')} ms</span></div>
+              <div class="ops-row"><span class="ops-label">Inference mode</span>
+                <span class="ops-value">{spill_analysis.get('inference_mode')}</span></div>
+              <div class="ops-row"><span class="ops-label">Spill ID</span>
+                <span class="ops-value ops-mono">{spill_analysis.get('spill_id')}</span></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.caption("No SAR image analyzed yet — using default spill footprint.")
+
     if selection_error:
         st.markdown(
             f'<div class="ops-banner"><strong>Selection sync failed</strong>{selection_error}</div>',
@@ -342,7 +418,7 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
-        conf_value = active_vessel.get("confidence", confidence_label)
+        conf_value = active_vessel.get("risk_score_label", risk_score_label)
         risk_css = _risk_class(risk_level)
         c1, c2 = st.columns(2)
         with c1:
@@ -359,7 +435,7 @@ with st.sidebar:
             st.markdown(
                 f"""
                 <div class="ops-metric">
-                  <div class="k">Spill area</div>
+                  <div class="k">Map footprint</div>
                   <div class="v">{active_vessel.get('area', '—')}</div>
                 </div>
                 """,
@@ -399,11 +475,19 @@ with st.sidebar:
             f"AquaSlick Incident Report\n"
             f"Vessel: {active_vessel['name']}\n"
             f"MMSI: {active_vessel['mmsi']}\n"
-            f"Risk score: {active_vessel.get('confidence', '—')}\n"
+            f"Spill ID: {active_spill_id or 'default'}\n"
+            f"Risk score: {active_vessel.get('risk_score_label', '—')}\n"
             f"Risk level: {risk_level or '—'}\n"
             f"Coordinates: {active_vessel['marker_loc']}\n"
             f"Rationale: {active_vessel.get('risk_rationale', 'n/a')}\n"
         )
+        if isinstance(spill_analysis, dict):
+            dossier += (
+                f"SAR detected: {spill_analysis.get('spill_detected')}\n"
+                f"SAR confidence: {spill_analysis.get('confidence')}\n"
+                f"Spill area %: {spill_analysis.get('spill_area_pct')}\n"
+                f"Inference mode: {spill_analysis.get('inference_mode')}\n"
+            )
         st.download_button(
             "Export incident report",
             data=dossier,

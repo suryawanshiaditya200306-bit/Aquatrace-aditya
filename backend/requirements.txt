@@ -1,3 +1,11 @@
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
 python-multipart>=0.0.12
+numpy>=1.24
+Pillow>=10.0
+tensorflow>=2.15,<2.20
+opencv-python-headless>=4.8,<5
+
+sqlalchemy
+geoalchemy2
+psycopg[binary]
