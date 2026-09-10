@@ -220,9 +220,10 @@ def _risk_class(level: str) -> str:
 
 backend_error: Optional[str] = None
 vessels: list[dict] = []
+spill: dict[str, Any] = {}
 
 try:
-    vessels, _spill = _load_map_vessels()
+    vessels, spill = _load_map_vessels()
 except BackendError as exc:
     backend_error = exc.message
     vessels = []
@@ -490,19 +491,22 @@ for v in vessels:
             tooltip=f"{v['name']} track",
         ).add_to(m)
 
-# 2) Spill polygon: only for the selected vessel (hidden in initial state)
-if selected_id:
-    selected_vessel = next((v for v in vessels if v["id"] == selected_id), None)
-    if selected_vessel and selected_vessel.get("spill"):
-        folium.Polygon(
-            locations=selected_vessel["spill"],
-            color=SPILL_COLOR,
-            fill=True,
-            fill_color=SPILL_COLOR,
-            fill_opacity=0.50,
-            weight=2.5,
-            tooltip="Detected spill footprint",
-        ).add_to(m)
+# 2) Spill polygon: one global detected spill incident
+spill_polygon = [
+    [p["lat"], p["lon"]]
+    for p in spill.get("footprint", {}).get("polygon", [])
+]
+
+if spill_polygon:
+    folium.Polygon(
+        locations=spill_polygon,
+        color=SPILL_COLOR,
+        fill=True,
+        fill_color=SPILL_COLOR,
+        fill_opacity=0.70,
+        weight=4,
+        tooltip="Detected spill footprint",
+    ).add_to(m)
 
 # 3) Markers: always show all vessels; selected state is distinct
 for v in vessels:
@@ -511,7 +515,7 @@ for v in vessels:
         location=v["marker_loc"],
         tooltip=v["name"],
         icon=folium.Icon(
-            color="darkblue" if is_selected else "cadetblue",
+            color=["blue", "green", "purple", "orange"][vessels.index(v) % 4],
             icon="ship",
             prefix="fa",
         ),
@@ -521,7 +525,7 @@ map_data = st_folium(
     m,
     key="aquaslick_ops_map",
     use_container_width=True,
-    height=820,
+    height=650,
     returned_objects=["last_object_clicked", "center", "zoom"],
 )
 
@@ -546,4 +550,5 @@ if map_data and map_data.get("last_object_clicked") and vessels:
         if dist < 0.1:
             if st.session_state.selected_vessel_id != v["id"]:
                 st.session_state.selected_vessel_id = v["id"]
+                st.markdown("<script>setTimeout(function(){var b=window.parent.document.querySelector(\"[data-testid=stSidebarCollapseButton]\");if(b)b.click();},300);</script>", unsafe_allow_html=True)
                 st.rerun()
